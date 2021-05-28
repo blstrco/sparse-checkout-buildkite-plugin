@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export BUILDKITE_GIT_CLONE_FLAGS="--filter=blob:none --no-checkout --depth 1 --sparse"
+export BUILDKITE_GIT_FETCH_FLAGS="--filter=blob:none --no-checkout --depth 1 --sparse"
