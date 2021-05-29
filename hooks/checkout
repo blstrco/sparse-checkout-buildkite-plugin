@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Checking out branch: $BUILDKITE_BRANCH"
+
+rm -rf "${BUILDKITE_BUILD_CHECKOUT_PATH}/*"
+
+git --version
+
+cd ${BUILDKITE_BUILD_CHECKOUT_PATH}
+
+git clone --filter=blob:none --no-checkout --depth 1 "$BUILDKITE_REPO" .
+
+git sparse-checkout init --cone
+
+git sparse-checkout add .buildkite
+
+git fetch -v --prune origin "$BUILDKITE_BRANCH"
+git checkout -f FETCH_HEAD
