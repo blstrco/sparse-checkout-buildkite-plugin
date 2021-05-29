@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+echo "Checking out branch: $BUILDKITE_BRANCH"
+
+rm -rf "${BUILDKITE_BUILD_CHECKOUT_PATH}/*"
+
+cd ${BUILDKITE_BUILD_CHECKOUT_PATH}
+
+alias gitdocker="docker run -ti --rm -v $(pwd):/git -v $HOME/.ssh:/root/.ssh alpine/git"
+
+gitdocker --version
+
+gitdocker clone --filter=blob:none --no-checkout --depth 1 --sparse "$BUILDKITE_REPO" .
+
+gitdocker sparse-checkout init --cone
+
+gitdocker sparse-checkout add .buildkite
+
+gitdocker fetch -v --prune origin "$BUILDKITE_BRANCH"
+gitdocker checkout -f FETCH_HEAD
