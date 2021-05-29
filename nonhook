@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+export BUILDKITE_GIT_CLONE_FLAGS="--filter=blob:none --no-checkout --depth 1"
+export BUILDKITE_GIT_FETCH_FLAGS="--filter=blob:none --no-checkout --depth 1"
+
+# https://github.com/uber-workflow/checkout-specific-branch-buildkite-plugin/blob/master/hooks/checkout
+#!/bin/bash
+
+GIT_BRANCH=${BUILDKITE_PLUGIN_CHECKOUT_SPECIFIC_BRANCH_BRANCH:-$BUILDKITE_PIPELINE_DEFAULT_BRANCH}
+
+echo "Checking out branch: $GIT_BRANCH"
+
+if [[ -d ".git" ]]; then
+  if git remote get-url origin; then
+    git remote set-url origin "$BUILDKITE_REPO"
+  else
+    git remote add origin "$BUILDKITE_REPO"
+  fi
+else
+  git clone "$BUILDKITE_REPO" .
+fi
+
+git clean -ffxdq
+
+git fetch -v --prune origin "$GIT_BRANCH"
+git checkout -f FETCH_HEAD
+
+git clean -ffxdq
+
+# https://github.com/praveensastry/git-checkout-buildkite-plugin/blob/master/hooks/checkout
+#!/bin/bash
+
+set -euo pipefail
+
+echo '--- cleaning existing git repo'
+rm -rf "${BUILDKITE_BUILD_CHECKOUT_PATH}"
+
+echo '--- initializing a git repo'
+git init ${BUILDKITE_BUILD_CHECKOUT_PATH}
+
+echo '--- setting remote to the Target git repo for this job'
+cd ${BUILDKITE_BUILD_CHECKOUT_PATH}
+git remote add origin ${GIT_REPO_URL}
+
+echo '--- fetching head'
+git fetch
+
+echo '--- checking out given ref spec'
+git reset --hard ${GIT_REF_SPEC}
